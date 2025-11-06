@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% block title %}Dashboard{% endblock %}</title>
+		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+	</head>
+	<body>
+		{# The original React/Figma export was pasted here by mistake; replaced with a Django template layout.
+			 Place page-specific content in the `content` block below. #}
+
+		<header>
+			<!-- Add header markup here or include a partial template -->
+		</header>
+
+		<main id="content">
+			{% block content %}
+			<p>Welcome — replace this with your dashboard markup.</p>
+			{% endblock %}
+		</main>
+
+		<footer>
+			<!-- optional footer -->
+		</footer>
+	</body>
+</html>

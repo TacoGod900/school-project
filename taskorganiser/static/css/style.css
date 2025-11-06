@@ -1,0 +1,30 @@
+/* Basic project stylesheet - replace with your Figma-exported styles as needed */
+:root {
+	--bg: #ffffff;
+	--accent: #0094ff;
+	--text: #111827;
+}
+
+html, body {
+	height: 100%;
+	margin: 0;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+	background: var(--bg);
+	color: var(--text);
+}
+
+header {
+	height: 87px;
+	background: #343434;
+}
+
+main#content {
+	padding: 24px;
+}
+
+/* simple utility classes */
+.container { max-width: 1200px; margin: 0 auto; }
+.hidden { display: none !important; }
+
+/* Add your component-specific styles below */
+
