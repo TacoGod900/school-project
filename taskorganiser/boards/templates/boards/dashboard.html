@@ -1,0 +1,392 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Nested Sortable Horizontal{% endblock %}
+
+{% block head %}
+  <style>
+    body {
+      background-image: url(/static/images/background-default.jpg);
+      background-size: cover;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Navbar styles */
+    .navbar {
+      background: #1e1e1e;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 100;
+      box-sizing: border-box;
+    }
+
+    .navbar-brand {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .navbar-menu {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .navbar-menu a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+
+    .navbar-menu a:hover {
+      background: rgba(255,255,255,0.15);
+      color: white;
+    }
+
+    /* Main content area with top padding to account for fixed navbar */
+    .main-content {
+      padding: 20px;
+      margin-top: 50px; /* space for fixed navbar */
+    }
+
+    #bigSort { 
+      display: flex; 
+      gap: 10px;
+      align-items: flex-start; /* prevents all containers from stretching to match tallest */
+    }
+    
+    .big-container { 
+      width: 250px; 
+      padding: 10px; 
+      border: 2px solid #444; 
+      background: rgba(255,255,255,0.85);
+    }
+    
+    .big-container h3 { 
+      cursor: grab; 
+      user-select: none;
+      margin-bottom: 10px;
+    }
+    
+    .small-list { 
+      display: flex; 
+      flex-direction: column;
+      gap: 5px; 
+      padding: 0; 
+      margin: 0; 
+    }
+    
+    .small-list li { 
+      list-style: none; 
+      padding: 10px;
+      background: #eee; 
+      border: 1px solid #ccc; 
+      cursor: grab;
+      user-select: none;
+    }
+
+    .small-list li:active {
+      cursor: grabbing;
+    }
+
+    .editthing-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .editthing-overlay.active {
+      display: flex;
+    }
+
+    .editthing-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      min-width: 400px;
+      max-width: 600px;
+    }
+
+    .editthing-content h2 {
+      margin: 0 0 20px 0;
+      color: #333;
+      font-size: 24px;
+    }
+
+    .editthing-content textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    .editthing-content textarea:focus {
+      outline: none;
+      border-color: #0094ff;
+    }
+
+    .editthing-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .editthing-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn-cancel {
+      background: #ccc;
+      color: #333;
+    }
+
+    .btn-cancel:hover {
+      background: #b3b3b3;
+    }
+
+    .btn-save {
+      background: #0094ff;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background: #0077cc;
+    }
+
+    .btn-delete {
+      background: #ff4444;
+      color: white;
+      margin-right: auto;
+    }
+
+    .btn-delete:hover {
+      background: #cc0000;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Task Organizer</a>
+  <div class="navbar-menu">
+    <a href="/">Dashboard</a>
+    <a href="#">Settings</a>
+    <a href="#">Profile</a>
+  </div>
+</nav>
+
+<!-- Main content area -->
+<div class="main-content">
+  <button id="newGroup" class="newgroupbtn">new group</button>
+  <div id="bigSort">
+    <div class="big-container">
+      <h3>Group 1<button class="btn-add-new-todo" id="btn-add-new-todo">new</button></h3>
+      <ul class="small-list">
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Edit thing -->
+<div class="editthing-overlay" id="editThing">
+  <div class="editthing-content">
+    <h2>Edit</h2>
+    <textarea id="editTextarea"></textarea>
+
+    <div class="editthing-buttons">
+      <button class="btn-delete" id="deleteBtn">Delete</button>
+      <button class="btn-cancel" id="cancelBtn">Cancel</button>
+      <button class="btn-save" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script>
+    let currentEditingItem = null;
+    let isDragging = false;
+    let dragStartTime = 0;
+
+    // big containers dragging
+    new Sortable(document.getElementById('bigSort'), { 
+      animation: 150, 
+      handle: 'h3', 
+      direction: 'horizontal' 
+    });
+    
+    // small things dragging
+    document.querySelectorAll('.small-list').forEach(list => {
+      new Sortable(list, { 
+        animation: 150,
+        direction: 'vertical',
+
+        onStart: function() {
+          isDragging = true;
+          dragStartTime = Date.now();
+        },
+        onEnd: function() {
+          // wait so that if u click too fast so that u can drag
+          setTimeout(() => {
+            isDragging = false;
+          }, 100);
+        }
+      });
+    });
+
+    // Modal elements
+    const editThing = document.getElementById('editThing');
+    const textarea = document.getElementById('editTextarea');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const newBtn = document.querySelectorAll('.btn-add-new-todo');
+    const newGroupBtn = document.getElementById('newGroup');
+
+    // check for click for every item
+    document.querySelectorAll('.small-list li').forEach(item => {
+      item.addEventListener('click', (e) => {
+        // only open the editthing if u didnt just drag
+        const timeSinceDrag = Date.now() - dragStartTime;
+        if (!isDragging && timeSinceDrag > 200) {
+          openEditThing(item);
+        }
+      });
+    });
+
+    function openEditThing(item) {
+      currentEditingItem = item;
+      textarea.value = item.textContent;
+      editThing.classList.add('active');
+      textarea.focus();
+      textarea.select();
+    }
+
+    function closeEditThing() {
+      editThing.classList.remove('active');
+      currentEditingItem = null;
+      textarea.value = '';
+    }
+
+    // Save button
+    saveBtn.addEventListener('click', () => {
+      if (currentEditingItem && textarea.value.trim()) {
+        currentEditingItem.textContent = textarea.value.trim();
+      }
+      closeEditThing();
+    });
+
+    // Cancel button
+    cancelBtn.addEventListener('click', closeEditThing);
+
+    // Delete button
+    deleteBtn.addEventListener('click', () => {
+      if (currentEditingItem) {
+        currentEditingItem.remove();
+      }
+      closeEditThing();
+    });
+
+    // New button
+    document.querySelectorAll('.btn-add-new-todo').forEach(button => {
+      button.addEventListener('click', () => {
+        const bigContainer = button.closest('.big-container');
+        const smallList = bigContainer.querySelector('.small-list');
+        const newItem = document.createElement('li');
+        newItem.textContent = 'New Item';
+        smallList.appendChild(newItem);
+
+        // Add click event to new item
+        newItem.addEventListener('click', () => {
+          openEditThing(newItem);
+        });
+
+        openEditThing(newItem);
+      });
+    });
+    // New Group button
+    document.getElementById('newGroup').addEventListener('click', () => {
+      const bigSort = document.getElementById('bigSort');
+      const newBigContainer = document.createElement('div');
+      newBigContainer.classList.add('big-container');
+
+      const groupCount = bigSort.querySelectorAll('.big-container').length + 1;
+
+      newBigContainer.innerHTML = `
+        <h3>Group ${groupCount}<button class="btn-add-new-todo" id="btn-add-new-todo">new</button></h3>
+        <ul class="small-list"></ul>
+      `;
+
+      bigSort.appendChild(newBigContainer);
+
+      // new list items can get dragged
+      const newSmallList = newBigContainer.querySelector('.small-list');
+      new Sortable(newSmallList, { 
+        animation: 150,
+        direction: 'vertical',
+        onStart: function() {
+          isDragging = true;
+          dragStartTime = Date.now();
+        },
+        onEnd: function() {
+          setTimeout(() => {
+            isDragging = false;
+          }, 100);
+        }
+      });
+
+      // add event listener to the new button
+      const newBtn = newBigContainer.querySelector('.btn-add-new-todo');
+      newBtn.addEventListener('click', () => {
+        const smallList = newBigContainer.querySelector('.small-list');
+        const newItem = document.createElement('li');
+        newItem.textContent = 'New Item';
+        smallList.appendChild(newItem);
+
+        // add click event to new item
+        newItem.addEventListener('click', () => {
+          const timeSinceDrag = Date.now() - dragStartTime;
+          if (!isDragging && timeSinceDrag > 200) {
+            openEditThing(newItem);
+          }
+        });
+
+        openEditThing(newItem);
+      });
+    });
+  </script>
+{% endblock %}
