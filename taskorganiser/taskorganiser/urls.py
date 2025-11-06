@@ -15,7 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-<<<<<<< HEAD
 from django.urls import path, include
 
 urlpatterns = [
@@ -23,20 +22,3 @@ urlpatterns = [
     # mount the boards app at the site root
     path('', include('boards.urls')),
 ]
-=======
-from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
-
-from main.views import dashboard_view, home_view
-
-urlpatterns = [
-    path('', dashboard_view, name='dashboard'),
-    path('home/', home_view, name='home'),
-    path('admin/', admin.site.urls),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
->>>>>>> c351e6fa5d255e2faf3413dfa7e2098f2bf0dc52
