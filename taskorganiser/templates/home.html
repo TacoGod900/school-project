@@ -1,0 +1,203 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  </head>
+  <body>
+    <main>
+      <h1>Home</h1>
+      <p>This is the home page (home.html).</p>
+      <p><a href="/">Dashboard</a></p>
+    </main>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>Placeholder 101 - Your productivity powerhouse</title>
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="styleguide.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="home">
+      <header class="header-bar">
+        <img class="logo-icon" src="img/size-48.svg" alt="Placeholder 101 Logo" />
+        <nav class="main-navigation" aria-label="Main navigation">
+          <a href="#features" class="nav-link">FEATURES</a>
+          <a href="#solutions" class="nav-link">SOLUTIONS</a>
+          <a href="#resources" class="nav-link">RESOURCES</a>
+          <a href="#login" class="nav-link">LOG IN</a>
+          <a href="#signup" class="nav-link nav-link-signup">SIGN UP</a>
+        </nav>
+      </header>
+      <div class="separator-line" role="separator"></div>
+      <section class="hero-section">
+        <img class="hero-logo" src="img/PLACEHOLDER.svg" alt="Placeholder" />
+        <div class="hero-content">
+          <h1 class="hero-title">Capture, organize, and tackle your to dos from anywhere.</h1>
+          <img class="hero-image" src="img/image-1.png" alt="Productivity app interface" />
+        </div>
+        <form class="hero-signup-form" aria-label="Sign up form">
+          <label for="hero-email" class="visually-hidden">Email address</label>
+          <input class="email-input" id="hero-email" placeholder="Email" type="email" required aria-required="true" />
+          <button type="submit" class="signup-button">SIGN UP</button>
+        </form>
+      </section>
+      <div class="separator-line" role="separator"></div>
+      <section class="features-section">
+        <div class="section-header">
+          <h2 class="section-label">PLACEHOLDER 101</h2>
+          <h3 class="section-title">Your productivity powerhouse</h3>
+          <p class="section-description">
+            Stay organized and efficient with Inbox, Boards, and Planner. Every to-do, idea, or responsibility—no matter
+            how small—finds its place, keeping you at the top of your game.
+          </p>
+        </div>
+        <div class="feature-cards">
+          <article class="feature-card">
+            <div class="feature-image"></div>
+            <div class="feature-body">
+              <div class="feature-text">
+                <h4 class="feature-title">Inbox</h4>
+                <p class="feature-description">
+                  When it's on your mind, it goes in your Inbox. Capture your to-dos from anywhere, anytime.
+                </p>
+              </div>
+            </div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-image"></div>
+            <div class="feature-body">
+              <div class="feature-text">
+                <h4 class="feature-title">Boards</h4>
+                <p class="feature-description">
+                  Your to-do list may be long, but it can be manageable! Keep tabs on everything from "to-dos to tackle"
+                  to "mission accomplished!"
+                </p>
+              </div>
+            </div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-image"></div>
+            <div class="feature-body">
+              <div class="feature-text">
+                <h4 class="feature-title">Planner</h4>
+                <p class="feature-description">
+                  Drag, drop, get it done. Snap your top tasks into your calendar and make time for what truly matters.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+      <div class="separator-line" role="separator"></div>
+      <section class="automation-section">
+        <div class="automation-content-left">
+          <h2 class="section-label">PLACEHOLDER 101</h2>
+          <h3 class="section-title">Automate your workflow</h3>
+          <p class="section-description">
+            Powerful no-code automation is built into every board. With Automation, you can focus on the work that
+            matters most.
+          </p>
+          <h4 class="subsection-title">Rule your boards</h4>
+          <p class="section-description">
+            Setting rules means important tasks won't fall through the cracks. Just set a trigger and the actions to be
+            performed, and let Automation run the show. Doesn't that rule?
+          </p>
+          <img class="automation-image-bottom" src="img/image-5.png" alt="Automation workflow example" />
+        </div>
+        <div class="automation-content-right">
+          <p class="automation-tagline">Create rules, buttons, and commands to automate almost any action in Trello.</p>
+          <div class="automation-cards">
+            <article class="automation-card">
+              <div class="automation-card-body">
+                <div class="automation-card-text">
+                  <h5 class="automation-card-title">Move card to <br />"Doing"</h5>
+                </div>
+              </div>
+              <img class="automation-card-image" src="img/image-2.png" alt="Move card automation" />
+            </article>
+            <article class="automation-card">
+              <div class="automation-card-body">
+                <div class="automation-card-text">
+                  <h5 class="automation-card-title">Add member</h5>
+                </div>
+              </div>
+              <img class="automation-card-image" src="img/image-3.png" alt="Add member automation" />
+            </article>
+            <article class="automation-card">
+              <div class="automation-card-body">
+                <div class="automation-card-text">
+                  <h5 class="automation-card-title">Set due date</h5>
+                </div>
+              </div>
+              <img class="automation-card-image" src="img/image-4.png" alt="Set due date automation" />
+            </article>
+          </div>
+        </div>
+      </section>
+      <div class="separator-line" role="separator"></div>
+      <section class="cta-section">
+        <h2 class="cta-title">Get started with placeholder today</h2>
+        <form class="cta-signup-form" aria-label="Sign up form">
+          <label for="cta-email" class="visually-hidden">Email address</label>
+          <input class="email-input" id="cta-email" placeholder="Email" type="email" required aria-required="true" />
+          <button type="submit" class="signup-button">SIGN UP</button>
+        </form>
+      </section>
+      <div class="separator-line" role="separator"></div>
+      <footer class="footer">
+        <img class="footer-logo" src="img/title.svg" alt="Company logo" />
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <div class="footer-column">
+            <h3 class="footer-heading">Use cases</h3>
+            <ul class="footer-list">
+              <li class="footer-list-item"><a href="#ui-design" class="footer-link">UI design</a></li>
+              <li class="footer-list-item"><a href="#ux-design" class="footer-link">UX design</a></li>
+              <li class="footer-list-item"><a href="#wireframing" class="footer-link">Wireframing</a></li>
+              <li class="footer-list-item"><a href="#diagramming" class="footer-link">Diagramming</a></li>
+              <li class="footer-list-item"><a href="#brainstorming" class="footer-link">Brainstorming</a></li>
+              <li class="footer-list-item"><a href="#online-whiteboard" class="footer-link">Online whiteboard</a></li>
+              <li class="footer-list-item"><a href="#team-collaboration" class="footer-link">Team collaboration</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3 class="footer-heading">Explore</h3>
+            <ul class="footer-list">
+              <li class="footer-list-item"><a href="#design" class="footer-link">Design</a></li>
+              <li class="footer-list-item"><a href="#prototyping" class="footer-link">Prototyping</a></li>
+              <li class="footer-list-item">
+                <a href="#development-features" class="footer-link">Development features</a>
+              </li>
+              <li class="footer-list-item"><a href="#design-systems" class="footer-link">Design systems</a></li>
+              <li class="footer-list-item">
+                <a href="#collaboration-features" class="footer-link">Collaboration features</a>
+              </li>
+              <li class="footer-list-item"><a href="#design-process" class="footer-link">Design process</a></li>
+              <li class="footer-list-item"><a href="#figjam" class="footer-link">FigJam</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3 class="footer-heading">Resources</h3>
+            <ul class="footer-list">
+              <li class="footer-list-item"><a href="#blog" class="footer-link">Blog</a></li>
+              <li class="footer-list-item"><a href="#best-practices" class="footer-link">Best practices</a></li>
+              <li class="footer-list-item"><a href="#colors" class="footer-link">Colors</a></li>
+              <li class="footer-list-item"><a href="#color-wheel" class="footer-link">Color wheel</a></li>
+              <li class="footer-list-item"><a href="#support" class="footer-link">Support</a></li>
+              <li class="footer-list-item"><a href="#developers" class="footer-link">Developers</a></li>
+              <li class="footer-list-item"><a href="#resource-library" class="footer-link">Resource library</a></li>
+            </ul>
+          </div>
+        </nav>
+      </footer>
+    </div>
+  </body>
+</html>
