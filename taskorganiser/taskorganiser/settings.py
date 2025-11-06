@@ -25,11 +25,7 @@ SECRET_KEY = 'django-insecure-2(3cynx&gvd-od+_yh+t)pa9@a!8=oz4#=h-3@g9ya4hw+n#)%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-<<<<<<< HEAD
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
-=======
-ALLOWED_HOSTS = []
->>>>>>> c351e6fa5d255e2faf3413dfa7e2098f2bf0dc52
 
 
 # Application definition
@@ -41,11 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
     'boards',
-=======
-    'main',
->>>>>>> c351e6fa5d255e2faf3413dfa7e2098f2bf0dc52
 ]
 
 MIDDLEWARE = [
@@ -63,12 +55,7 @@ ROOT_URLCONF = 'taskorganiser.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-<<<<<<< HEAD
-        'DIRS': [],
-=======
-    # Project-level templates directory
-    'DIRS': [BASE_DIR / 'templates'],
->>>>>>> c351e6fa5d255e2faf3413dfa7e2098f2bf0dc52
+    'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,7 +117,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-<<<<<<< HEAD
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -138,9 +124,6 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-=======
->>>>>>> c351e6fa5d255e2faf3413dfa7e2098f2bf0dc52
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
