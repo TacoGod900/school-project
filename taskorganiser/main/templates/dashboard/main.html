@@ -1,0 +1,46 @@
+{% extends "dashboard/dashboard_layout.html" %}
+{% load static %}
+
+{% block title %}Board View{% endblock %}
+
+{% block content %}
+<!-- Converted Figma/React JSX into server-rendered HTML using static assets -->
+<section class="board-view">
+  <!-- Background & header visuals are handled by the base layout; place board-specific markup here -->
+  <div class="board-container container">
+    <div class="board-left">
+      <!-- Left column content (lists) -->
+      <div class="list-column">
+        <h3>List Title</h3>
+        <div class="card">Placeholder</div>
+      </div>
+    </div>
+
+    <div class="board-main">
+      <!-- Use images from static; ensure files are placed under static/images/ if you add them -->
+      <img src="{% static 'images/image-1.png' %}" alt="Background visual" class="board-bg" />
+
+      <div class="board-controls">
+        <div class="board-title">{{ BOARD.name }}</div>
+        <div class="actions">
+          <button class="btn primary">+ Add another list</button>
+        </div>
+      </div>
+
+      <!-- Example of a couple of columns created from the Figma layout -->
+      <div class="columns">
+        <div class="column">
+          <div class="column-header">To do</div>
+          <div class="card">Task A</div>
+          <div class="card">Task B</div>
+        </div>
+
+        <div class="column">
+          <div class="column-header">Doing</div>
+          <div class="card">Task C</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
