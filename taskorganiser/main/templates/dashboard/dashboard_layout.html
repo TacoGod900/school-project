@@ -6,6 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{% block title %}Dashboard{% endblock %}</title>
 		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+		{% load vite %}
 	</head>
 	<body>
 		{# The original React/Figma export was pasted here by mistake; replaced with a Django template layout.
@@ -24,5 +25,7 @@
 		<footer>
 			<!-- optional footer -->
 		</footer>
+			{# Inject Vite-built frontend assets (CSS/JS) if present #}
+			{% vite 'index.html' %}
 	</body>
 </html>
