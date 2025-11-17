@@ -206,20 +206,28 @@ def toggle_task_completed(request, task_id):
 def update_board(request, board_id):
     try:
         board = Board.objects.get(id=board_id, owner=request.user)
-        data = json.loads(request.body)
-        name = data.get('name', '').strip()
-        background_image = data.get('background_image', '').strip()
         
-        if name:
-            board.name = name
-        if background_image:
-            board.background_image = background_image
+        # Handle file upload separately from JSON data
+        if request.FILES.get('background_image'):
+            board.background_image = request.FILES['background_image']
+        
+        # Handle JSON data for name
+        if request.body and request.content_type == 'application/json':
+            data = json.loads(request.body)
+            name = data.get('name', '').strip()
+            if name:
+                board.name = name
+        elif request.POST.get('name'):
+            board.name = request.POST.get('name').strip()
         
         board.save()
+        
+        bg_url = board.background_image.url if board.background_image else ''
+        
         return JsonResponse({
             'success': True,
             'board_name': board.name,
-            'background_image': board.background_image
+            'background_image': bg_url
         })
     except Board.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Board not found'}, status=404)

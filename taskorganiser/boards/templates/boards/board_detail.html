@@ -6,7 +6,14 @@
   <link rel="stylesheet" href="{% static 'boards/style.css' %}">
   <style>
     body {
-      background-image: url({% static board.background_image %});
+      {% if board.background_image %}
+        background-image: url({{ board.background_image.url }});
+      {% else %}
+        background-image: url({% static 'images/background-default.jpg' %});
+      {% endif %}
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
     }
   </style>
 {% endblock %}
@@ -58,18 +65,21 @@
 <div class="editthing-overlay" id="boardSettingsModal">
   <div class="editthing-content">
     <h2>Board Settings</h2>
-    <div style="margin-bottom: 16px;">
-      <label style="display: block; color: #333; margin-bottom: 8px;">Board Name</label>
-      <input type="text" id="boardNameInput" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
-    </div>
-    <div style="margin-bottom: 16px;">
-      <label style="display: block; color: #333; margin-bottom: 8px;">Background Image Path</label>
-      <input type="text" id="boardBgInput" placeholder="e.g., images/background-default.jpg" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
-    </div>
-    <div class="modal-buttons">
-      <button id="boardCancelBtn" class="btn-edit-cancel">Cancel</button>
-      <button id="boardSaveBtn" class="btn-save">Save</button>
-    </div>
+    <form id="boardSettingsForm" enctype="multipart/form-data">
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; color: #333; margin-bottom: 8px;">Board Name</label>
+        <input type="text" id="boardNameInput" name="name" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; color: #333; margin-bottom: 8px;">Background Image</label>
+        <input type="file" id="boardBgInput" name="background_image" accept="image/*" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
+        <small style="display: block; margin-top: 4px; color: #666;">Upload an image from your device</small>
+      </div>
+      <div class="modal-buttons">
+        <button type="button" id="boardCancelBtn" class="btn-edit-cancel">Cancel</button>
+        <button type="button" id="boardSaveBtn" class="btn-save">Save</button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}
@@ -227,7 +237,7 @@
     // Board settings modal handlers
     document.getElementById('editBoardBtn').addEventListener('click', () => {
       document.getElementById('boardNameInput').value = document.getElementById('boardName').textContent.trim().replace('✎', '').trim();
-      document.getElementById('boardBgInput').value = '{{ board.background_image }}';
+      document.getElementById('boardBgInput').value = '';
       document.getElementById('boardSettingsModal').classList.add('active');
     });
 
@@ -236,21 +246,33 @@
     });
 
     document.getElementById('boardSaveBtn').addEventListener('click', () => {
+      const formData = new FormData();
       const name = document.getElementById('boardNameInput').value.trim();
-      const bgImage = document.getElementById('boardBgInput').value.trim();
+      const fileInput = document.getElementById('boardBgInput');
+      
+      if (name) {
+        formData.append('name', name);
+      }
+      
+      if (fileInput.files.length > 0) {
+        formData.append('background_image', fileInput.files[0]);
+      }
       
       fetch(`/board/${boardId}/update/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-        body: JSON.stringify({ name: name, background_image: bgImage })
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: formData
       })
       .then(r => r.json())
       .then(d => {
         if (d.success) {
           const boardNameEl = document.getElementById('boardName');
           boardNameEl.childNodes[0].textContent = d.board_name;
-          document.body.style.backgroundImage = `url(/static/${d.background_image})`;
+          if (d.background_image) {
+            document.body.style.backgroundImage = `url(${d.background_image})`;
+          }
           document.getElementById('boardSettingsModal').classList.remove('active');
+          document.getElementById('boardSettingsForm').reset();
         }
       });
     });
