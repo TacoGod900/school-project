@@ -16,6 +16,7 @@ urlpatterns = [
     path('board/<int:board_id>/', views.board_detail, name='board_detail'),
     # API endpoints for groups and tasks
     path('board/<int:board_id>/group/create/', views.create_group, name='create_group'),
+    path('group/<int:group_id>/update/', views.update_group, name='update_group'),
     path('group/<int:group_id>/task/create/', views.create_task, name='create_task'),
     path('task/<int:task_id>/update/', views.update_task, name='update_task'),
     path('task/<int:task_id>/delete/', views.delete_task, name='delete_task'),

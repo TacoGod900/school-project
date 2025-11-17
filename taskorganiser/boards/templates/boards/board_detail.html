@@ -32,7 +32,10 @@
   <div id="bigSort">
     {% for group in groups %}
       <div class="big-container" data-group-id="{{ group.id }}">
-        <h3>{{ group.name }}<button class="btn-add-new-todo">new</button></h3>
+        <h3>
+          <span class="group-name" data-group-id="{{ group.id }}">{{ group.name }}</span>
+          <button class="btn-add-new-todo">new</button>
+        </h3>
         <ul class="small-list">
           {% for task in group.tasks.all %}
             <li data-task-id="{{ task.id }}">
@@ -144,6 +147,31 @@
 
     document.querySelectorAll('.task-checkbox').forEach(checkbox => attachCheckboxHandler(checkbox));
 
+    // Group name click handler for renaming
+    function attachGroupNameClickHandler(groupNameEl) {
+      groupNameEl.addEventListener('click', () => {
+        const currentName = groupNameEl.textContent.trim();
+        const groupId = groupNameEl.dataset.groupId;
+        const newName = prompt('Enter new group name:', currentName);
+        
+        if (newName && newName.trim() && newName.trim() !== currentName && groupId) {
+          fetch(`/group/${groupId}/update/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ name: newName.trim() })
+          })
+          .then(r => r.json())
+          .then(d => { 
+            if (d.success) {
+              groupNameEl.textContent = d.group_name;
+            }
+          });
+        }
+      });
+    }
+
+    document.querySelectorAll('.group-name').forEach(el => attachGroupNameClickHandler(el));
+
     document.getElementById('saveBtn').addEventListener('click', () => {
       const taskId = currentEditingItem.dataset.taskId;
       const content = document.getElementById('editTextarea').value.trim();
@@ -226,10 +254,11 @@
           const newBigContainer = document.createElement('div');
           newBigContainer.classList.add('big-container');
           newBigContainer.dataset.groupId = d.group_id;
-          newBigContainer.innerHTML = `<h3>${d.group_name}<button class="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>`;
+          newBigContainer.innerHTML = `<h3><span class="group-name" data-group-id="${d.group_id}">${d.group_name}</span><button class="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>`;
           document.getElementById('bigSort').appendChild(newBigContainer);
           initSortableList(newBigContainer.querySelector('.small-list'));
           attachNewTaskHandler(newBigContainer.querySelector('.btn-add-new-todo'));
+          attachGroupNameClickHandler(newBigContainer.querySelector('.group-name'));
         }
       });
     });

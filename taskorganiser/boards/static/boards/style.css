@@ -436,6 +436,21 @@ input::placeholder, textarea::placeholder {
   cursor: grab;
   user-select: none;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.group-name {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  flex: 1;
+}
+
+.group-name:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .small-list {
@@ -454,8 +469,9 @@ input::placeholder, textarea::placeholder {
   cursor: grab;
   user-select: none;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  min-height: 40px;
 }
 
 .small-list li:active {
@@ -473,6 +489,7 @@ input::placeholder, textarea::placeholder {
   position: relative;
   background: white;
   transition: all 0.2s;
+  margin-top: 2px;
 }
 
 .task-checkbox:hover {
@@ -498,6 +515,10 @@ input::placeholder, textarea::placeholder {
 .task-text {
   flex: 1;
   transition: opacity 0.2s;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .task-checkbox:checked ~ .task-text {

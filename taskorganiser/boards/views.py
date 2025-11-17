@@ -143,6 +143,28 @@ def create_group(request, board_id):
 
 @login_required
 @require_http_methods(["POST"])
+def update_group(request, group_id):
+    """Update a group's name"""
+    try:
+        group = Group.objects.get(id=group_id, board__owner=request.user)
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        
+        if name:
+            group.name = name
+            group.save()
+        
+        return JsonResponse({
+            'success': True,
+            'group_name': group.name
+        })
+    except Group.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Group not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_http_methods(["POST"])
 def create_task(request, group_id):
     try:
         group = Group.objects.get(id=group_id, board__owner=request.user)
