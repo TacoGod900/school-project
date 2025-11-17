@@ -356,11 +356,29 @@ input::placeholder, textarea::placeholder {
 .board-header h1 {
   margin: 0;
   color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .board-header p {
   color: #999;
   margin: 4px 0 0;
+}
+
+.btn-edit-board {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 0.2s;
+}
+
+.btn-edit-board:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .newgroupbtn {

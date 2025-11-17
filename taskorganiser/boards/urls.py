@@ -19,4 +19,6 @@ urlpatterns = [
     path('group/<int:group_id>/task/create/', views.create_task, name='create_task'),
     path('task/<int:task_id>/update/', views.update_task, name='update_task'),
     path('task/<int:task_id>/delete/', views.delete_task, name='delete_task'),
+    path('task/<int:task_id>/toggle/', views.toggle_task_completed, name='toggle_task_completed'),
+    path('board/<int:board_id>/update/', views.update_board, name='update_board'),
 ]

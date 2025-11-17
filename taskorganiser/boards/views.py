@@ -97,14 +97,13 @@ def dashboard(request):
 
 @login_required
 def board_detail(request, board_id):
-    """Show a single board with its groups and tasks"""
     try:
         board = Board.objects.get(id=board_id, owner=request.user)
     except Board.DoesNotExist:
         from django.http import Http404
         raise Http404("Board not found")
 
-    # Prefetch groups and tasks
+    # get groups and tasks
     groups = board.groups.prefetch_related('tasks').all()
 
     return render(request, 'boards/board_detail.html', {
@@ -115,7 +114,6 @@ def board_detail(request, board_id):
 @login_required
 @require_http_methods(["POST"])
 def create_group(request, board_id):
-    """Create a new group in a board"""
     try:
         board = Board.objects.get(id=board_id, owner=request.user)
         data = json.loads(request.body)
@@ -146,7 +144,6 @@ def create_group(request, board_id):
 @login_required
 @require_http_methods(["POST"])
 def create_task(request, group_id):
-    """Create a new task in a group"""
     try:
         group = Group.objects.get(id=group_id, board__owner=request.user)
         data = json.loads(request.body)
@@ -177,7 +174,6 @@ def create_task(request, group_id):
 @login_required
 @require_http_methods(["POST"])
 def update_task(request, task_id):
-    """Update a task's content"""
     task = Task.objects.get(id=task_id, group__board__owner=request.user)
     data = json.loads(request.body)
     task.content = data.get('content', '').strip()
@@ -187,7 +183,45 @@ def update_task(request, task_id):
 @login_required
 @require_http_methods(["POST"])
 def delete_task(request, task_id):
-    """Delete a task"""
     task = Task.objects.get(id=task_id, group__board__owner=request.user)
     task.delete()
     return JsonResponse({'success': True})
+
+@login_required
+@require_http_methods(["POST"])
+def toggle_task_completed(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id, group__board__owner=request.user)
+        data = json.loads(request.body)
+        task.completed = data.get('completed', False)
+        task.save()
+        return JsonResponse({'success': True, 'completed': task.completed})
+    except Task.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Task not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def update_board(request, board_id):
+    try:
+        board = Board.objects.get(id=board_id, owner=request.user)
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        background_image = data.get('background_image', '').strip()
+        
+        if name:
+            board.name = name
+        if background_image:
+            board.background_image = background_image
+        
+        board.save()
+        return JsonResponse({
+            'success': True,
+            'board_name': board.name,
+            'background_image': board.background_image
+        })
+    except Board.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Board not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

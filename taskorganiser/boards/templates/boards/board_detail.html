@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{% static 'boards/style.css' %}">
   <style>
     body {
-      background-image: url({% static 'images/background-default.jpg' %});
+      background-image: url({% static board.background_image %});
     }
   </style>
 {% endblock %}
@@ -15,7 +15,7 @@
 <div class="main-content">
   <div class="board-header">
     <div>
-      <h1>{{ board.name }}</h1>
+      <h1 id="boardName">{{ board.name }}<button id="editBoardBtn" class="btn-edit-board">✎</button></h1>
       <p>{{ board.description }}</p>
     </div>
   </div>
@@ -29,11 +29,10 @@
         <ul class="small-list">
           {% for task in group.tasks.all %}
             <li data-task-id="{{ task.id }}">
-              <input type="checkbox" class="task-checkbox">
+              <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %}>
               <span class="task-text">{{ task.content }}</span>
             </li>
           {% empty %}
-            <!-- empty list -->
           {% endfor %}
         </ul>
       </div>
@@ -51,6 +50,25 @@
       <button id="deleteBtn" class="btn-delete">Delete</button>
       <button id="cancelBtn" class="btn-edit-cancel">Cancel</button>
       <button id="saveBtn" class="btn-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Board Settings Modal -->
+<div class="editthing-overlay" id="boardSettingsModal">
+  <div class="editthing-content">
+    <h2>Board Settings</h2>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; color: #333; margin-bottom: 8px;">Board Name</label>
+      <input type="text" id="boardNameInput" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
+    </div>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; color: #333; margin-bottom: 8px;">Background Image Path</label>
+      <input type="text" id="boardBgInput" placeholder="e.g., images/background-default.jpg" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; color: #333; background: white;">
+    </div>
+    <div class="modal-buttons">
+      <button id="boardCancelBtn" class="btn-edit-cancel">Cancel</button>
+      <button id="boardSaveBtn" class="btn-save">Save</button>
     </div>
   </div>
 </div>
@@ -97,6 +115,24 @@
     }
 
     document.querySelectorAll('.small-list li').forEach(item => attachTaskClickHandler(item));
+
+    // Checkbox
+    function attachCheckboxHandler(checkbox) {
+      checkbox.addEventListener('change', (e) => {
+        const taskId = checkbox.closest('li').dataset.taskId;
+        if (taskId) {
+          fetch(`/task/${taskId}/toggle/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ completed: e.target.checked })
+          })
+          .then(r => r.json())
+          .then(d => { if (!d.success) e.target.checked = !e.target.checked; });
+        }
+      });
+    }
+
+    document.querySelectorAll('.task-checkbox').forEach(checkbox => attachCheckboxHandler(checkbox));
 
     document.getElementById('saveBtn').addEventListener('click', () => {
       const taskId = currentEditingItem.dataset.taskId;
@@ -153,6 +189,7 @@
               newItem.dataset.taskId = d.task_id;
               smallList.appendChild(newItem);
               attachTaskClickHandler(newItem);
+              attachCheckboxHandler(newItem.querySelector('.task-checkbox'));
             }
           });
         } else {
@@ -183,6 +220,37 @@
           document.getElementById('bigSort').appendChild(newBigContainer);
           initSortableList(newBigContainer.querySelector('.small-list'));
           attachNewTaskHandler(newBigContainer.querySelector('.btn-add-new-todo'));
+        }
+      });
+    });
+
+    // Board settings modal handlers
+    document.getElementById('editBoardBtn').addEventListener('click', () => {
+      document.getElementById('boardNameInput').value = document.getElementById('boardName').textContent.trim().replace('✎', '').trim();
+      document.getElementById('boardBgInput').value = '{{ board.background_image }}';
+      document.getElementById('boardSettingsModal').classList.add('active');
+    });
+
+    document.getElementById('boardCancelBtn').addEventListener('click', () => {
+      document.getElementById('boardSettingsModal').classList.remove('active');
+    });
+
+    document.getElementById('boardSaveBtn').addEventListener('click', () => {
+      const name = document.getElementById('boardNameInput').value.trim();
+      const bgImage = document.getElementById('boardBgInput').value.trim();
+      
+      fetch(`/board/${boardId}/update/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ name: name, background_image: bgImage })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const boardNameEl = document.getElementById('boardName');
+          boardNameEl.childNodes[0].textContent = d.board_name;
+          document.body.style.backgroundImage = `url(/static/${d.background_image})`;
+          document.getElementById('boardSettingsModal').classList.remove('active');
         }
       });
     });
