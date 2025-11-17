@@ -207,20 +207,33 @@ def update_board(request, board_id):
     try:
         board = Board.objects.get(id=board_id, owner=request.user)
         
-        # Handle file upload separately from JSON data
+        updated = False
+        
+        # Handle multipart form data (file upload)
         if request.FILES.get('background_image'):
             board.background_image = request.FILES['background_image']
+            updated = True
         
-        # Handle JSON data for name
-        if request.body and request.content_type == 'application/json':
-            data = json.loads(request.body)
-            name = data.get('name', '').strip()
-            if name:
-                board.name = name
-        elif request.POST.get('name'):
-            board.name = request.POST.get('name').strip()
+        # Get name from POST data (works for both multipart and JSON)
+        name = request.POST.get('name', '').strip()
+        if name:
+            board.name = name
+            updated = True
         
-        board.save()
+        # Fallback: try JSON body if POST didn't have name
+        if not name and request.body:
+            try:
+                data = json.loads(request.body)
+                name = data.get('name', '').strip()
+                if name:
+                    board.name = name
+                    updated = True
+            except (json.JSONDecodeError, ValueError):
+                pass
+        
+        # Only save if something was actually updated
+        if updated:
+            board.save()
         
         bg_url = board.background_image.url if board.background_image else ''
         
@@ -232,4 +245,7 @@ def update_board(request, board_id):
     except Board.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Board not found'}, status=404)
     except Exception as e:
+        # Log the actual error for debugging
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)

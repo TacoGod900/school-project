@@ -263,17 +263,33 @@
         headers: { 'X-CSRFToken': getCookie('csrftoken') },
         body: formData
       })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          return r.json().then(err => {
+            throw new Error(err.error || `HTTP ${r.status}`);
+          });
+        }
+        return r.json();
+      })
       .then(d => {
         if (d.success) {
           const boardNameEl = document.getElementById('boardName');
           boardNameEl.childNodes[0].textContent = d.board_name;
           if (d.background_image) {
             document.body.style.backgroundImage = `url(${d.background_image})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
           }
           document.getElementById('boardSettingsModal').classList.remove('active');
           document.getElementById('boardSettingsForm').reset();
+        } else {
+          alert('Error: ' + (d.error || 'Unknown error'));
         }
+      })
+      .catch(err => {
+        console.error('Board update error:', err);
+        alert('Failed to update board: ' + err.message);
       });
     });
   </script>
