@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}{{ board.name }}{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'boards/style.css' %}">
+  <style>
+    body {
+      background-image: url({% static 'images/background-default.jpg' %});
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="board-header">
+    <div>
+      <h1>{{ board.name }}</h1>
+      <p>{{ board.description }}</p>
+    </div>
+  </div>
+
+  <button id="newGroup" class="newgroupbtn">new group</button>
+
+  <div id="bigSort">
+    {% for group in groups %}
+      <div class="big-container" data-group-id="{{ group.id }}">
+        <h3>{{ group.name }}<button class="btn-add-new-todo">new</button></h3>
+        <ul class="small-list">
+          {% for task in group.tasks.all %}
+            <li data-task-id="{{ task.id }}">{{ task.content }}</li>
+          {% empty %}
+            <!-- empty list -->
+          {% endfor %}
+        </ul>
+      </div>
+    {% empty %}
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Edit thing -->
+<div class="editthing-overlay" id="editThing">
+  <div class="editthing-content">
+    <h2>Edit</h2>
+    <textarea id="editTextarea"></textarea>
+    <div class="modal-buttons">
+      <button id="deleteBtn" class="btn-delete">Delete</button>
+      <button id="cancelBtn" class="btn-edit-cancel">Cancel</button>
+      <button id="saveBtn" class="btn-save">Save</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script>
+    const boardId = {{ board.id }};
+    let currentEditingItem = null;
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    new Sortable(document.getElementById('bigSort'), { animation:150, handle:'h3', direction:'horizontal' });
+
+    function initSortableList(list) {
+      new Sortable(list, { animation:150, direction:'vertical' });
+    }
+
+    document.querySelectorAll('.small-list').forEach(list => initSortableList(list));
+
+    function attachTaskClickHandler(item) {
+      item.addEventListener('click', () => {
+        currentEditingItem = item;
+        document.getElementById('editTextarea').value = item.textContent.trim();
+        document.getElementById('editThing').classList.add('active');
+      });
+    }
+
+    document.querySelectorAll('.small-list li').forEach(item => attachTaskClickHandler(item));
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const taskId = currentEditingItem.dataset.taskId;
+      const content = document.getElementById('editTextarea').value.trim();
+      if (taskId) {
+        fetch(`/task/${taskId}/update/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+          body: JSON.stringify({ content: content })
+        })
+        .then(r => r.json())
+        .then(d => { if (d.success) currentEditingItem.textContent = content; });
+      } else {
+        currentEditingItem.textContent = content;
+      }
+      document.getElementById('editThing').classList.remove('active');
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      document.getElementById('editThing').classList.remove('active');
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+      const taskId = currentEditingItem.dataset.taskId;
+      if (taskId) {
+        fetch(`/task/${taskId}/delete/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(d => { if (d.success) currentEditingItem.remove(); });
+      } else {
+        currentEditingItem.remove();
+      }
+      document.getElementById('editThing').classList.remove('active');
+    });
+
+    function attachNewTaskHandler(button) {
+      button.addEventListener('click', () => {
+        const groupId = button.closest('.big-container').dataset.groupId;
+        const smallList = button.closest('.big-container').querySelector('.small-list');
+        if (groupId) {
+          fetch(`/group/${groupId}/task/create/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ content: 'New Item' })
+          })
+          .then(r => r.json())
+          .then(d => {
+            if (d.success) {
+              const newItem = document.createElement('li');
+              newItem.textContent = d.task_content;
+              newItem.dataset.taskId = d.task_id;
+              smallList.appendChild(newItem);
+              attachTaskClickHandler(newItem);
+            }
+          });
+        } else {
+          const newItem = document.createElement('li');
+          newItem.textContent = 'New Item';
+          smallList.appendChild(newItem);
+          attachTaskClickHandler(newItem);
+        }
+      });
+    }
+
+    document.querySelectorAll('.btn-add-new-todo').forEach(button => attachNewTaskHandler(button));
+
+    document.getElementById('newGroup').addEventListener('click', () => {
+      const groupCount = document.getElementById('bigSort').querySelectorAll('.big-container').length + 1;
+      fetch(`/board/${boardId}/group/create/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ name: `Group ${groupCount}` })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const newBigContainer = document.createElement('div');
+          newBigContainer.classList.add('big-container');
+          newBigContainer.dataset.groupId = d.group_id;
+          newBigContainer.innerHTML = `<h3>${d.group_name}<button class="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>`;
+          document.getElementById('bigSort').appendChild(newBigContainer);
+          initSortableList(newBigContainer.querySelector('.small-list'));
+          attachNewTaskHandler(newBigContainer.querySelector('.btn-add-new-todo'));
+        }
+      });
+    });
+  </script>
+{% endblock %}

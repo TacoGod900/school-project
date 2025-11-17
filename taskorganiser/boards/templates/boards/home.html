@@ -1,14 +1,99 @@
 {% extends 'layout.html' %}
-{% block title %}Home{% endblock %}
+{% load static %}
+{% block title %}My Boards{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'boards/style.css' %}">
+{% endblock %}
 
 {% block content %}
-  <button id='create-board-button'>Create a new board</button>
+<div class="home-container">
+  <div class="home-header">
+    <h1 class="home-title">{{ user.username }}!</h1>
+    <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+  </div>
+
+  <button id='create-board-button' class="btn-create-board">
+    + New Board
+  </button>
+  
+  <div id="boards-list" class="boards-grid">
+    {% for board in boards %}
+      <div class="board-card" onclick="window.location.href='/board/{{ board.id }}/'">
+        <h3>{{ board.name }}</h3>
+        <p>{{ board.description }}</p>
+        <small>Created: {{ board.created_at|date:"M d, Y" }}</small>
+      </div>
+    {% empty %}
+      <p style="color: #666666; grid-column: 1 / -1; font-size: 16px;">No boards yet. Create one to get started!</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Create Board Modal -->
+<div id="createBoardModal" class="modal">
+  <div class="modal-content">
+    <h2 class="modal-title">Create New Board</h2>
+    <form id="createBoardForm">
+      <div class="form-group">
+        <label for="boardName" class="form-label">Board Name</label>
+        <input type="text" id="boardName" placeholder="e.g., Personal Tasks">
+      </div>
+      
+      <div class="form-group">
+        <label for="boardDescription" class="form-label">Description</label>
+        <textarea id="boardDescription" placeholder="Add a description for your board..."></textarea>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="button" id="cancelCreateBoard" class="btn-cancel">Cancel</button>
+        <button type="submit" id="confirmCreateBoard" class="btn-submit">Create Board</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
   <script>
-    document.getElementById('create-board-button').addEventListener('click', function() {
-      
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    document.getElementById('create-board-button').addEventListener('click', () => {
+      document.getElementById('createBoardModal').classList.add('active');
+    });
+
+    document.getElementById('cancelCreateBoard').addEventListener('click', () => {
+      document.getElementById('createBoardModal').classList.remove('active');
+    });
+
+    document.getElementById('createBoardForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      fetch('/board/create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          name: document.getElementById('boardName').value,
+          description: document.getElementById('boardDescription').value
+        })
+      })
+      .then(r => r.json())
+      .then(d => { if (d.success) window.location.href = d.redirect_url; });
     });
   </script>
 {% endblock %}

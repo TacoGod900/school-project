@@ -11,6 +11,7 @@
       background-repeat: no-repeat;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
 
     /* Navbar styles */
@@ -25,9 +26,9 @@
       top: 0;
       left: 0;
       right: 0;
-      width: 100%;
       z-index: 100;
       box-sizing: border-box;
+      height: 60px;
     }
 
     .navbar-brand {
@@ -58,14 +59,23 @@
 
     /* Main content area with top padding to account for fixed navbar */
     .main-content {
+      position: relative;
       padding: 20px;
-      margin-top: 50px; /* space for fixed navbar */
+      padding-top: 20px;
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 100vh;
     }
 
     #bigSort { 
       display: flex; 
       gap: 10px;
       align-items: flex-start; /* prevents all containers from stretching to match tallest */
+      flex-wrap: nowrap;
+      overflow-x: auto; /* allow horizontal scrolling if needed */
+      width: 100%;
+      position: relative;
+      z-index: 1;
     }
     
     .big-container { 
@@ -73,12 +83,45 @@
       padding: 10px; 
       border: 2px solid #444; 
       background: rgba(255,255,255,0.85);
+      flex-shrink: 0;
+      position: relative;
     }
     
     .big-container h3 { 
       cursor: grab; 
       user-select: none;
       margin-bottom: 10px;
+    }
+
+    .newgroupbtn {
+      padding: 10px 20px;
+      background: #0094ff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+
+    .newgroupbtn:hover {
+      background: #0077cc;
+    }
+
+    .btn-add-new-todo {
+      padding: 4px 8px;
+      background: #0094ff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .btn-add-new-todo:hover {
+      background: #0077cc;
     }
     
     .small-list { 
@@ -198,16 +241,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Navbar -->
-<nav class="navbar">
-  <a href="/" class="navbar-brand">Task Organizer</a>
-  <div class="navbar-menu">
-    <a href="/">Dashboard</a>
-    <a href="#">Settings</a>
-    <a href="#">Profile</a>
-  </div>
-</nav>
-
 <!-- Main content area -->
 <div class="main-content">
   <button id="newGroup" class="newgroupbtn">new group</button>

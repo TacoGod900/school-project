@@ -1,0 +1,66 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block title %}Register{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'boards/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    
+    <div style="margin-bottom: 40px;">
+      <div class="auth-logo"></div>
+      <h2 class="auth-title">Create an account</h2>
+      <p class="auth-subtitle">
+        Already have an account? <a href="{% url 'login' %}">Login here</a>
+      </p>
+    </div>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message {% if message.tags == 'error' %}message-error{% else %}message-success{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <small class="form-error">{{ form.username.errors.0 }}</small>
+        {% else %}
+          <small class="form-help">150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+          <small class="form-error">{{ form.password1.errors.0 }}</small>
+        {% else %}
+          <small class="form-help">Use 8 or more characters with a mix of letters, numbers & symbols</small>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+          <small class="form-error">{{ form.password2.errors.0 }}</small>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn-primary">
+        Create account
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
