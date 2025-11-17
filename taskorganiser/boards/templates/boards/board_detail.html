@@ -28,7 +28,10 @@
         <h3>{{ group.name }}<button class="btn-add-new-todo">new</button></h3>
         <ul class="small-list">
           {% for task in group.tasks.all %}
-            <li data-task-id="{{ task.id }}">{{ task.content }}</li>
+            <li data-task-id="{{ task.id }}">
+              <input type="checkbox" class="task-checkbox">
+              <span class="task-text">{{ task.content }}</span>
+            </li>
           {% empty %}
             <!-- empty list -->
           {% endfor %}
@@ -83,11 +86,14 @@
     document.querySelectorAll('.small-list').forEach(list => initSortableList(list));
 
     function attachTaskClickHandler(item) {
-      item.addEventListener('click', () => {
-        currentEditingItem = item;
-        document.getElementById('editTextarea').value = item.textContent.trim();
-        document.getElementById('editThing').classList.add('active');
-      });
+      const taskText = item.querySelector('.task-text');
+      if (taskText) {
+        taskText.addEventListener('click', () => {
+          currentEditingItem = item;
+          document.getElementById('editTextarea').value = taskText.textContent.trim();
+          document.getElementById('editThing').classList.add('active');
+        });
+      }
     }
 
     document.querySelectorAll('.small-list li').forEach(item => attachTaskClickHandler(item));
@@ -95,6 +101,7 @@
     document.getElementById('saveBtn').addEventListener('click', () => {
       const taskId = currentEditingItem.dataset.taskId;
       const content = document.getElementById('editTextarea').value.trim();
+      const taskText = currentEditingItem.querySelector('.task-text');
       if (taskId) {
         fetch(`/task/${taskId}/update/`, {
           method: 'POST',
@@ -102,9 +109,9 @@
           body: JSON.stringify({ content: content })
         })
         .then(r => r.json())
-        .then(d => { if (d.success) currentEditingItem.textContent = content; });
+        .then(d => { if (d.success && taskText) taskText.textContent = content; });
       } else {
-        currentEditingItem.textContent = content;
+        if (taskText) taskText.textContent = content;
       }
       document.getElementById('editThing').classList.remove('active');
     });
@@ -142,7 +149,7 @@
           .then(d => {
             if (d.success) {
               const newItem = document.createElement('li');
-              newItem.textContent = d.task_content;
+              newItem.innerHTML = `<input type="checkbox" class="task-checkbox"><span class="task-text">${d.task_content}</span>`;
               newItem.dataset.taskId = d.task_id;
               smallList.appendChild(newItem);
               attachTaskClickHandler(newItem);
@@ -150,7 +157,7 @@
           });
         } else {
           const newItem = document.createElement('li');
-          newItem.textContent = 'New Item';
+          newItem.innerHTML = `<input type="checkbox" class="task-checkbox"><span class="task-text">New Item</span>`;
           smallList.appendChild(newItem);
           attachTaskClickHandler(newItem);
         }

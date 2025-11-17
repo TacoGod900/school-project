@@ -355,10 +355,11 @@ input::placeholder, textarea::placeholder {
 
 .board-header h1 {
   margin: 0;
+  color: #ffffff;
 }
 
 .board-header p {
-  color: #666;
+  color: #999;
   margin: 4px 0 0;
 }
 
@@ -434,10 +435,56 @@ input::placeholder, textarea::placeholder {
   border: 1px solid #ccc;
   cursor: grab;
   user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .small-list li:active {
   cursor: grabbing;
+}
+
+.task-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #666;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  background: white;
+  transition: all 0.2s;
+}
+
+.task-checkbox:hover {
+  border-color: #0094ff;
+}
+
+.task-checkbox:checked {
+  background: #0094ff;
+  border-color: #0094ff;
+}
+
+.task-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.task-text {
+  flex: 1;
+  transition: opacity 0.2s;
+}
+
+.task-checkbox:checked ~ .task-text {
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
 .editthing-overlay {
