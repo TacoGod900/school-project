@@ -15,7 +15,6 @@
       overflow-x: hidden;
     }
 
-    /* Navbar styles */
     .navbar {
       background: #1e1e1e;
       padding: 12px 20px;
@@ -58,7 +57,6 @@
       color: white;
     }
 
-    /* Main content area with top padding to account for fixed navbar */
     .main-content {
       position: relative;
       padding: 20px;
@@ -71,9 +69,9 @@
     #bigSort { 
       display: flex; 
       gap: 10px;
-      align-items: flex-start; /* prevents all containers from stretching to match tallest */
+      align-items: flex-start;
       flex-wrap: nowrap;
-      overflow-x: auto; /* allow horizontal scrolling if needed */
+      overflow-x: auto;
       width: 100%;
       position: relative;
       z-index: 1;
@@ -242,7 +240,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Main content area -->
 <div class="main-content">
   <button id="newGroup" class="newgroupbtn">new group</button>
   <div id="bigSort">
@@ -254,7 +251,6 @@
   </div>
 </div>
 
-<!-- Edit thing -->
 <div class="editthing-overlay" id="editThing">
   <div class="editthing-content">
     <h2>Edit</h2>
@@ -272,37 +268,41 @@
 {% block scripts %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   <script>
+    // keep track of what we are editing
     let currentEditingItem = null;
+    
+    // these help us know if someone just dragged something
     let isDragging = false;
     let dragStartTime = 0;
 
-    // big containers dragging
+    // make the big group boxes draggable side to side
     new Sortable(document.getElementById('bigSort'), { 
       animation: 150, 
       handle: 'h3', 
       direction: 'horizontal' 
     });
     
-    // small things dragging
-    document.querySelectorAll('.small-list').forEach(list => {
-      new Sortable(list, { 
+    // make all the task lists draggable up and down
+    const allLists = document.querySelectorAll('.small-list');
+    for (let i = 0; i < allLists.length; i++) {
+      new Sortable(allLists[i], { 
         animation: 150,
         direction: 'vertical',
-
+        // when you start dragging remember it
         onStart: function() {
           isDragging = true;
           dragStartTime = Date.now();
         },
+        // when you stop dragging wait a bit then forget it
         onEnd: function() {
-          // wait so that if u click too fast so that u can drag
-          setTimeout(() => {
+          setTimeout(function() {
             isDragging = false;
           }, 100);
         }
       });
-    });
+    }
 
-    // Modal elements
+    // get all the popup elements
     const editThing = document.getElementById('editThing');
     const textarea = document.getElementById('editTextarea');
     const saveBtn = document.getElementById('saveBtn');
@@ -311,17 +311,19 @@
     const newBtn = document.querySelectorAll('.btn-add-new-todo');
     const newGroupBtn = document.getElementById('newGroup');
 
-    // check for click for every item
-    document.querySelectorAll('.small-list li').forEach(item => {
-      item.addEventListener('click', (e) => {
-        // only open the editthing if u didnt just drag
+    // when you click an item it opens the edit popup
+    const allItems = document.querySelectorAll('.small-list li');
+    for (let i = 0; i < allItems.length; i++) {
+      allItems[i].addEventListener('click', function(e) {
+        // only open if you didnt just drag it
         const timeSinceDrag = Date.now() - dragStartTime;
         if (!isDragging && timeSinceDrag > 200) {
-          openEditThing(item);
+          openEditThing(allItems[i]);
         }
       });
-    });
+    }
 
+    // show the edit popup
     function openEditThing(item) {
       currentEditingItem = item;
       textarea.value = item.textContent;
@@ -330,64 +332,71 @@
       textarea.select();
     }
 
+    // hide the edit popup
     function closeEditThing() {
       editThing.classList.remove('active');
       currentEditingItem = null;
       textarea.value = '';
     }
 
-    // Save button
-    saveBtn.addEventListener('click', () => {
+    // when you click save
+    saveBtn.addEventListener('click', function() {
       if (currentEditingItem && textarea.value.trim()) {
         currentEditingItem.textContent = textarea.value.trim();
       }
       closeEditThing();
     });
 
-    // Cancel button
+    // when you click cancel
     cancelBtn.addEventListener('click', closeEditThing);
 
-    // Delete button
-    deleteBtn.addEventListener('click', () => {
+    // when you click delete
+    deleteBtn.addEventListener('click', function() {
       if (currentEditingItem) {
         currentEditingItem.remove();
       }
       closeEditThing();
     });
 
-    // New button
-    document.querySelectorAll('.btn-add-new-todo').forEach(button => {
-      button.addEventListener('click', () => {
-        const bigContainer = button.closest('.big-container');
+    // when you click the new button in a group
+    const allNewButtons = document.querySelectorAll('.btn-add-new-todo');
+    for (let i = 0; i < allNewButtons.length; i++) {
+      allNewButtons[i].addEventListener('click', function() {
+        // find which group this button is in
+        const bigContainer = allNewButtons[i].closest('.big-container');
         const smallList = bigContainer.querySelector('.small-list');
+        
+        // make a new item
         const newItem = document.createElement('li');
         newItem.textContent = 'New Item';
         smallList.appendChild(newItem);
 
-        // Add click event to new item
-        newItem.addEventListener('click', () => {
+        // make it clickable
+        newItem.addEventListener('click', function() {
           openEditThing(newItem);
         });
 
+        // open the edit popup right away
         openEditThing(newItem);
       });
-    });
-    // New Group button
-    document.getElementById('newGroup').addEventListener('click', () => {
+    }
+
+    // when you click the new group button
+    document.getElementById('newGroup').addEventListener('click', function() {
       const bigSort = document.getElementById('bigSort');
       const newBigContainer = document.createElement('div');
       newBigContainer.classList.add('big-container');
 
+      // figure out what number this group is
       const groupCount = bigSort.querySelectorAll('.big-container').length + 1;
 
-      newBigContainer.innerHTML = `
-        <h3>Group ${groupCount}<button class="btn-add-new-todo" id="btn-add-new-todo">new</button></h3>
-        <ul class="small-list"></ul>
-      `;
+      // make the html for the new group
+      newBigContainer.innerHTML = '<h3>Group ' + groupCount + '<button class="btn-add-new-todo" id="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>';
 
+      // add it to the page
       bigSort.appendChild(newBigContainer);
 
-      // new list items can get dragged
+      // make the new list draggable
       const newSmallList = newBigContainer.querySelector('.small-list');
       new Sortable(newSmallList, { 
         animation: 150,
@@ -397,22 +406,22 @@
           dragStartTime = Date.now();
         },
         onEnd: function() {
-          setTimeout(() => {
+          setTimeout(function() {
             isDragging = false;
           }, 100);
         }
       });
 
-      // add event listener to the new button
+      // make the new button work
       const newBtn = newBigContainer.querySelector('.btn-add-new-todo');
-      newBtn.addEventListener('click', () => {
+      newBtn.addEventListener('click', function() {
         const smallList = newBigContainer.querySelector('.small-list');
         const newItem = document.createElement('li');
         newItem.textContent = 'New Item';
         smallList.appendChild(newItem);
 
-        // add click event to new item
-        newItem.addEventListener('click', () => {
+        // make it clickable
+        newItem.addEventListener('click', function() {
           const timeSinceDrag = Date.now() - dragStartTime;
           if (!isDragging && timeSinceDrag > 200) {
             openEditThing(newItem);

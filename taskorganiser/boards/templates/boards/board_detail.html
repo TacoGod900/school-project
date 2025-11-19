@@ -90,9 +90,13 @@
 {% block scripts %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   <script>
+    // get the board id from django
     const boardId = {{ board.id }};
+    
+    // keep track of what item we are editing
     let currentEditingItem = null;
 
+    // this gets the csrf token from cookies so we can send data to django
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -108,217 +112,307 @@
       return cookieValue;
     }
 
-    new Sortable(document.getElementById('bigSort'), { animation:150, handle:'h3', direction:'horizontal' });
+    // make the big group containers draggable side to side
+    new Sortable(document.getElementById('bigSort'), { 
+      animation:150, 
+      handle:'h3', 
+      direction:'horizontal' 
+    });
 
+    // make a list draggable up and down
     function initSortableList(list) {
-      new Sortable(list, { animation:150, direction:'vertical' });
-    }
-
-    document.querySelectorAll('.small-list').forEach(list => initSortableList(list));
-
-    function attachTaskClickHandler(item) {
-      const taskText = item.querySelector('.task-text');
-      if (taskText) {
-        taskText.addEventListener('click', () => {
-          currentEditingItem = item;
-          document.getElementById('editTextarea').value = taskText.textContent.trim();
-          document.getElementById('editThing').classList.add('active');
-        });
-      }
-    }
-
-    document.querySelectorAll('.small-list li').forEach(item => attachTaskClickHandler(item));
-
-    // Checkbox
-    function attachCheckboxHandler(checkbox) {
-      checkbox.addEventListener('change', (e) => {
-        const taskId = checkbox.closest('li').dataset.taskId;
-        if (taskId) {
-          fetch(`/task/${taskId}/toggle/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ completed: e.target.checked })
-          })
-          .then(r => r.json())
-          .then(d => { if (!d.success) e.target.checked = !e.target.checked; });
-        }
+      new Sortable(list, { 
+        animation:150, 
+        direction:'vertical' 
       });
     }
 
-    document.querySelectorAll('.task-checkbox').forEach(checkbox => attachCheckboxHandler(checkbox));
+    // make all the existing task lists draggable
+    const allLists = document.querySelectorAll('.small-list');
+    for (let i = 0; i < allLists.length; i++) {
+      initSortableList(allLists[i]);
+    }
 
-    // Group name click handler for renaming
+    // when you click a task text it opens the edit popup
+    function attachTaskClickHandler(item) {
+      const taskText = item.querySelector('.task-text');
+      taskText.addEventListener('click', function() {
+        currentEditingItem = item;
+        document.getElementById('editTextarea').value = taskText.textContent.trim();
+        document.getElementById('editThing').classList.add('active');
+      });
+    }
+
+    // add click handlers to all existing tasks
+    const allTaskItems = document.querySelectorAll('.small-list li');
+    for (let i = 0; i < allTaskItems.length; i++) {
+      attachTaskClickHandler(allTaskItems[i]);
+    }
+
+    // when you check or uncheck a box it saves to the server
+    function attachCheckboxHandler(checkbox) {
+      checkbox.addEventListener('change', function(e) {
+        const taskId = checkbox.closest('li').dataset.taskId;
+        const csrftoken = getCookie('csrftoken');
+        const url = '/task/' + taskId + '/toggle/';
+        const data = JSON.stringify({ completed: e.target.checked });
+        
+        // send the checked status to server
+        fetch(url, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRFToken': csrftoken 
+          },
+          body: data
+        });
+      });
+    }
+
+    // add checkbox handlers to all existing checkboxes
+    const allCheckboxes = document.querySelectorAll('.task-checkbox');
+    for (let i = 0; i < allCheckboxes.length; i++) {
+      attachCheckboxHandler(allCheckboxes[i]);
+    }
+
+    // when you click a group name you can rename it
     function attachGroupNameClickHandler(groupNameEl) {
-      groupNameEl.addEventListener('click', () => {
+      groupNameEl.addEventListener('click', function() {
         const currentName = groupNameEl.textContent.trim();
         const groupId = groupNameEl.dataset.groupId;
         const newName = prompt('Enter new group name:', currentName);
         
-        if (newName && newName.trim() && newName.trim() !== currentName && groupId) {
-          fetch(`/group/${groupId}/update/`, {
+        // if they typed something, send it to server
+        if (newName && newName.trim()) {
+          const csrftoken = getCookie('csrftoken');
+          const url = '/group/' + groupId + '/update/';
+          const data = JSON.stringify({ name: newName.trim() });
+          
+          fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ name: newName.trim() })
+            headers: { 
+              'Content-Type': 'application/json', 
+              'X-CSRFToken': csrftoken 
+            },
+            body: data
           })
-          .then(r => r.json())
-          .then(d => { 
-            if (d.success) {
-              groupNameEl.textContent = d.group_name;
-            }
+          .then(function(response) {
+            // turn the response into usable data
+            return response.json();
+          })
+          .then(function(json) { 
+            // update the group name on the page
+            groupNameEl.textContent = json.group_name;
           });
         }
       });
     }
 
-    document.querySelectorAll('.group-name').forEach(el => attachGroupNameClickHandler(el));
+    // add click handlers to all group names
+    const allGroupNames = document.querySelectorAll('.group-name');
+    for (let i = 0; i < allGroupNames.length; i++) {
+      attachGroupNameClickHandler(allGroupNames[i]);
+    }
 
-    document.getElementById('saveBtn').addEventListener('click', () => {
+    // when you click save in the edit popup
+    document.getElementById('saveBtn').addEventListener('click', function() {
       const taskId = currentEditingItem.dataset.taskId;
       const content = document.getElementById('editTextarea').value.trim();
       const taskText = currentEditingItem.querySelector('.task-text');
-      if (taskId) {
-        fetch(`/task/${taskId}/update/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-          body: JSON.stringify({ content: content })
-        })
-        .then(r => r.json())
-        .then(d => { if (d.success && taskText) taskText.textContent = content; });
-      } else {
-        if (taskText) taskText.textContent = content;
-      }
+      const csrftoken = getCookie('csrftoken');
+      const url = '/task/' + taskId + '/update/';
+      const data = JSON.stringify({ content: content });
+      
+      // send the new text to the server
+      fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-CSRFToken': csrftoken 
+        },
+        body: data
+      })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(json) { 
+        // update the text on the page
+        taskText.textContent = content;
+      });
+      
+      // close the popup
       document.getElementById('editThing').classList.remove('active');
     });
 
-    document.getElementById('cancelBtn').addEventListener('click', () => {
+    // when you click cancel in the edit popup
+    document.getElementById('cancelBtn').addEventListener('click', function() {
       document.getElementById('editThing').classList.remove('active');
     });
 
-    document.getElementById('deleteBtn').addEventListener('click', () => {
+    // when you click delete in the edit popup
+    document.getElementById('deleteBtn').addEventListener('click', function() {
       const taskId = currentEditingItem.dataset.taskId;
-      if (taskId) {
-        fetch(`/task/${taskId}/delete/`, {
-          method: 'POST',
-          headers: { 'X-CSRFToken': getCookie('csrftoken') }
-        })
-        .then(r => r.json())
-        .then(d => { if (d.success) currentEditingItem.remove(); });
-      } else {
+      const csrftoken = getCookie('csrftoken');
+      const url = '/task/' + taskId + '/delete/';
+      
+      // tell the server to delete this task
+      fetch(url, {
+        method: 'POST',
+        headers: { 
+          'X-CSRFToken': csrftoken 
+        }
+      })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(json) { 
+        // remove it from the page
         currentEditingItem.remove();
-      }
+      });
+      
+      // close the popup
       document.getElementById('editThing').classList.remove('active');
     });
 
+    // when you click the new button on a group
     function attachNewTaskHandler(button) {
-      button.addEventListener('click', () => {
+      button.addEventListener('click', function() {
         const groupId = button.closest('.big-container').dataset.groupId;
         const smallList = button.closest('.big-container').querySelector('.small-list');
-        if (groupId) {
-          fetch(`/group/${groupId}/task/create/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ content: 'New Item' })
-          })
-          .then(r => r.json())
-          .then(d => {
-            if (d.success) {
-              const newItem = document.createElement('li');
-              newItem.innerHTML = `<input type="checkbox" class="task-checkbox"><span class="task-text">${d.task_content}</span>`;
-              newItem.dataset.taskId = d.task_id;
-              smallList.appendChild(newItem);
-              attachTaskClickHandler(newItem);
-              attachCheckboxHandler(newItem.querySelector('.task-checkbox'));
-            }
-          });
-        } else {
+        const csrftoken = getCookie('csrftoken');
+        const url = '/group/' + groupId + '/task/create/';
+        const data = JSON.stringify({ content: 'New Item' });
+        
+        // tell the server to make a new task
+        fetch(url, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRFToken': csrftoken 
+          },
+          body: data
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(json) {
+          // make a new task element
           const newItem = document.createElement('li');
-          newItem.innerHTML = `<input type="checkbox" class="task-checkbox"><span class="task-text">New Item</span>`;
+          newItem.innerHTML = '<input type="checkbox" class="task-checkbox"><span class="task-text">' + json.task_content + '</span>';
+          newItem.dataset.taskId = json.task_id;
+          
+          // add it to the list
           smallList.appendChild(newItem);
+          
+          // make it clickable and checkable
           attachTaskClickHandler(newItem);
-        }
+          attachCheckboxHandler(newItem.querySelector('.task-checkbox'));
+        });
       });
     }
 
-    document.querySelectorAll('.btn-add-new-todo').forEach(button => attachNewTaskHandler(button));
+    // add handlers to all existing new task buttons
+    const allNewTaskButtons = document.querySelectorAll('.btn-add-new-todo');
+    for (let i = 0; i < allNewTaskButtons.length; i++) {
+      attachNewTaskHandler(allNewTaskButtons[i]);
+    }
 
-    document.getElementById('newGroup').addEventListener('click', () => {
+    // when you click the new group button
+    document.getElementById('newGroup').addEventListener('click', function() {
       const groupCount = document.getElementById('bigSort').querySelectorAll('.big-container').length + 1;
-      fetch(`/board/${boardId}/group/create/`, {
+      const csrftoken = getCookie('csrftoken');
+      const url = '/board/' + boardId + '/group/create/';
+      const data = JSON.stringify({ name: 'Group ' + groupCount });
+      
+      // tell the server to make a new group
+      fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-        body: JSON.stringify({ name: `Group ${groupCount}` })
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-CSRFToken': csrftoken 
+        },
+        body: data
       })
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) {
-          const newBigContainer = document.createElement('div');
-          newBigContainer.classList.add('big-container');
-          newBigContainer.dataset.groupId = d.group_id;
-          newBigContainer.innerHTML = `<h3><span class="group-name" data-group-id="${d.group_id}">${d.group_name}</span><button class="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>`;
-          document.getElementById('bigSort').appendChild(newBigContainer);
-          initSortableList(newBigContainer.querySelector('.small-list'));
-          attachNewTaskHandler(newBigContainer.querySelector('.btn-add-new-todo'));
-          attachGroupNameClickHandler(newBigContainer.querySelector('.group-name'));
-        }
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(json) {
+        // make a new group container
+        const newBigContainer = document.createElement('div');
+        newBigContainer.classList.add('big-container');
+        newBigContainer.dataset.groupId = json.group_id;
+        newBigContainer.innerHTML = '<h3><span class="group-name" data-group-id="' + json.group_id + '">' + json.group_name + '</span><button class="btn-add-new-todo">new</button></h3><ul class="small-list"></ul>';
+        
+        // add it to the page
+        document.getElementById('bigSort').appendChild(newBigContainer);
+        
+        // make the new list draggable
+        initSortableList(newBigContainer.querySelector('.small-list'));
+        
+        // make the buttons work
+        attachNewTaskHandler(newBigContainer.querySelector('.btn-add-new-todo'));
+        attachGroupNameClickHandler(newBigContainer.querySelector('.group-name'));
       });
     });
 
-    // Board settings modal handlers
-    document.getElementById('editBoardBtn').addEventListener('click', () => {
+    // when you click the edit board button
+    document.getElementById('editBoardBtn').addEventListener('click', function() {
+      // put the current board name in the input
       document.getElementById('boardNameInput').value = document.getElementById('boardName').textContent.trim().replace('✎', '').trim();
       document.getElementById('boardBgInput').value = '';
+      
+      // show the popup
       document.getElementById('boardSettingsModal').classList.add('active');
     });
 
-    document.getElementById('boardCancelBtn').addEventListener('click', () => {
+    // when you click cancel on board settings
+    document.getElementById('boardCancelBtn').addEventListener('click', function() {
       document.getElementById('boardSettingsModal').classList.remove('active');
     });
 
-    document.getElementById('boardSaveBtn').addEventListener('click', () => {
+    // when you click save on board settings
+    document.getElementById('boardSaveBtn').addEventListener('click', function() {
       const formData = new FormData();
       const name = document.getElementById('boardNameInput').value.trim();
       const fileInput = document.getElementById('boardBgInput');
+      const csrftoken = getCookie('csrftoken');
+      const url = '/board/' + boardId + '/update/';
       
-      if (name) {
-        formData.append('name', name);
-      }
+      // add the board name to the form
+      formData.append('name', name);
       
+      // if they picked a file, add it too
       if (fileInput.files.length > 0) {
         formData.append('background_image', fileInput.files[0]);
       }
       
-      fetch(`/board/${boardId}/update/`, {
+      // send it to the server
+      fetch(url, {
         method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        headers: { 
+          'X-CSRFToken': csrftoken 
+        },
         body: formData
       })
-      .then(r => {
-        if (!r.ok) {
-          return r.json().then(err => {
-            throw new Error(err.error || `HTTP ${r.status}`);
-          });
-        }
-        return r.json();
+      .then(function(response) {
+        return response.json();
       })
-      .then(d => {
-        if (d.success) {
-          const boardNameEl = document.getElementById('boardName');
-          boardNameEl.childNodes[0].textContent = d.board_name;
-          if (d.background_image) {
-            document.body.style.backgroundImage = `url(${d.background_image})`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundAttachment = 'fixed';
-          }
-          document.getElementById('boardSettingsModal').classList.remove('active');
-          document.getElementById('boardSettingsForm').reset();
-        } else {
-          alert('Error: ' + (d.error || 'Unknown error'));
+      .then(function(json) {
+        // update the board name on the page
+        const boardNameEl = document.getElementById('boardName');
+        boardNameEl.childNodes[0].textContent = json.board_name;
+        
+        // if they uploaded a new background, update it
+        if (json.background_image) {
+          document.body.style.backgroundImage = 'url(' + json.background_image + ')';
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
         }
-      })
-      .catch(err => {
-        console.error('Board update error:', err);
-        alert('Failed to update board: ' + err.message);
+        
+        // close the popup and clear the form
+        document.getElementById('boardSettingsModal').classList.remove('active');
+        document.getElementById('boardSettingsForm').reset();
       });
     });
   </script>

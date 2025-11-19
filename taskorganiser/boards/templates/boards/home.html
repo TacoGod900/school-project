@@ -31,7 +31,6 @@
   </div>
 </div>
 
-<!-- Create Board Modal -->
 <div id="createBoardModal" class="modal">
   <div class="modal-content">
     <h2 class="modal-title">Create New Board</h2>
@@ -57,6 +56,7 @@
 
 {% block scripts %}
   <script>
+    // this gets the csrf token from cookies so we can send stuff to django
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -72,29 +72,51 @@
       return cookieValue;
     }
 
-    document.getElementById('create-board-button').addEventListener('click', () => {
+    // when you click the create board button
+    document.getElementById('create-board-button').addEventListener('click', function() {
+      // show the popup
       document.getElementById('createBoardModal').classList.add('active');
     });
 
-    document.getElementById('cancelCreateBoard').addEventListener('click', () => {
+    // when you click cancel
+    document.getElementById('cancelCreateBoard').addEventListener('click', function() {
+      // hide the popup
       document.getElementById('createBoardModal').classList.remove('active');
     });
 
-    document.getElementById('createBoardForm').addEventListener('submit', (e) => {
+    // when you submit the form
+    document.getElementById('createBoardForm').addEventListener('submit', function(e) {
+      // stop the page from reloading
       e.preventDefault();
-      fetch('/board/create/', {
+      
+      const csrftoken = getCookie('csrftoken');
+      const boardName = document.getElementById('boardName').value;
+      const boardDescription = document.getElementById('boardDescription').value;
+      const url = '/board/create/';
+      
+      // put the form data into a string
+      const data = JSON.stringify({
+        name: boardName,
+        description: boardDescription
+      });
+      
+      // send it to the server
+      fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrftoken
         },
-        body: JSON.stringify({
-          name: document.getElementById('boardName').value,
-          description: document.getElementById('boardDescription').value
-        })
+        body: data
       })
-      .then(r => r.json())
-      .then(d => { if (d.success) window.location.href = d.redirect_url; });
+      .then(function(response) {
+        // turn the response into usable data
+        return response.json();
+      })
+      .then(function(json) { 
+        // go to the new board page
+        window.location.href = json.redirect_url;
+      });
     });
   </script>
 {% endblock %}
